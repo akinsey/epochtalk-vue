@@ -413,7 +413,7 @@
   <posts-delete-modal :selectedPost="selectedPost" :show="showPostsDeleteModal" @close="showPostsDeleteModal = false; selectedPost = null"/>
   <posts-undelete-modal :selectedPost="selectedPost" :show="showPostsUndeleteModal" @close="showPostsUndeleteModal = false; selectedPost = null"/>
   <posts-purge-post-modal :selectedPost="selectedPost" :selectedPostIndex="selectedPostIndex" :page="postData.data.page" :limit="postData.data.limit" :posts="postData.data?.posts" :show="showPostsPurgePostModal" @close="showPostsPurgePostModal = false; selectedPost = null; selectedPostIndex = 0"/>
-  <posts-move-thread-modal :threadId="postData.data.thread?.id" :show="showPostsMoveThreadModal" @close="showPostsMoveThreadModal = false"/>
+  <posts-move-thread-modal v-if="canMove()" :threadId="postData.data.thread?.id" :show="showPostsMoveThreadModal" @close="showPostsMoveThreadModal = false"/>
   <posts-purge-thread-modal :threadId="postData.data.thread?.id" :boardId="postData.data.board?.id" :boardSlug="postData.data.board?.slug" :show="showPostsPurgeThreadModal" @close="showPostsPurgeThreadModal = false"/>
   <posts-report-modal :selectedPost="selectedPost" :canReportPosts="true" :canReportUsers="true" :show="showPostsReportModal" @close="showPostsReportModal = false; selectedPost = null"/>
 </template>
@@ -447,8 +447,8 @@ export default {
   beforeRouteEnter(to, from, next) {
     const params = {
       limit: localStoragePrefs().data.posts_per_page,
-      page: to.query.page || 1,
-      start: to.query.start
+      page: isNaN(to.query.start) ? to.query.page || 1 : undefined,
+      start: isNaN(to.query.start) ? undefined : Number(to.query.start)
     }
     threadsApi.slugToThreadId(to.params.threadSlug).then(t => t.id)
       .then(threadId => {
@@ -465,8 +465,8 @@ export default {
   beforeRouteUpdate(to, from, next) {
     const params = {
       limit: localStoragePrefs().data.posts_per_page,
-      page: to.query.page || 1,
-      start: to.query.start
+      page: isNaN(to.query.start) ? to.query.page || 1 : undefined,
+      start: isNaN(to.query.start) ? undefined : Number(to.query.start)
     }
     threadsApi.slugToThreadId(to.params.threadSlug).then(t => t.id)
       .then(threadId => {
@@ -492,8 +492,8 @@ export default {
         const params = {
           thread_id: threadId,
           limit: v.prefs.posts_per_page,
-          page: $route.query.page || 1,
-          start: $route.query.start
+          page: isNaN($route.query.start) ? $route.query.page || 1 : undefined,
+          start: isNaN($route.query.start) ? undefined : Number($route.query.start)
         }
         return postsApi.byThread(params)
       })
